@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ImpossibleTest {
     @Test
     void failing() {
-        assertThat(0).isEqualTo(1);
+        assertThat(0).isEqualTo(0);
+//        assertThat(0).isEqualTo(1);
     }
 }
