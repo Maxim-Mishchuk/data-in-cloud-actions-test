@@ -30,12 +30,15 @@ jobs:
       - name: Execute Gradle build
         run: |
           chmod +x ./gradlew
-          ./gradlew bootJar          
+          ./gradlew bootJar 
+          
+      - name: Copy Jar file
+        run: mv build/libs/$(ls build/libs) app.jar
 
       - uses: actions/upload-artifact@master
         with:
           name: jar-file
-          path: build/libs/$(ls build/libs)
+          path: app.jar
   
   build-image:
 
@@ -50,7 +53,7 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: jar-file
-          path: build/libs/$(ls build/libs)
+          path: app.jar
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
