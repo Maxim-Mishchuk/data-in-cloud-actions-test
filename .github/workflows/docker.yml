@@ -11,6 +11,7 @@ jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    environment: test-environment
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
