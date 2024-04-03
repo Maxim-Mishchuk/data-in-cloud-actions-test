@@ -71,32 +71,39 @@ jobs:
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
   
-  push_to_registry:
-    name: Push Docker image to Docker Hub
-    needs: [build, dependency-submission]
+  build-image:
+
     runs-on: ubuntu-latest
     environment: test-environment
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
+    needs: build
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+    steps:
+      
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@master
+        with:
+          name: jar-file
+          path: build/libs/data-in-cloud-0.0.1-SNAPSHOT.jar
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: ia14maksymmishchuk/lab4-5
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+      - name: Set env
+        run: echo "DATE=$(date +%s)" >> $GITHUB_ENV
+      
+      - name: Build and push
+        uses: docker/build-push-action@v3
         with:
           context: .
-          file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: iic/dockerized-spring-boot-app:${{ env.DATE }}
