@@ -106,4 +106,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ia14maksymmishchuk/lab4-5:${{ env.DATE }}
+          tags: ia14maksymmishchuk/lab4-5:latest
