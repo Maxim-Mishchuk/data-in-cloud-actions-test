@@ -4,7 +4,8 @@
 ## How to start project?
 ### Locally
 1. Run command line and go to project directory
-2. Execute: "docker-compose up"
+2. Execute: ./gradlew build
+3. Execute: "docker-compose up"
 ### From Cloud
 - Go via this url: http://ec2-13-49-74-161.eu-north-1.compute.amazonaws.com/
 
