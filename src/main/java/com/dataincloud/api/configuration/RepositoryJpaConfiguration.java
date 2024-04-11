@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
-@ComponentScan("com.dataincloud.dal")
+@ComponentScan({"com.dataincloud.dal.user", "com.dataincloud.dal.post"})
 @EntityScan("com.dataincloud.dal")
 @EnableJpaRepositories("com.dataincloud.dal")
-public class RepositoryConfiguration {
+public class RepositoryJpaConfiguration {
 }
