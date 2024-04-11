@@ -18,8 +18,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 				version = "feature/Phase1"
 		),
 		servers = {
-
-				@Server(url = "http://localhost:8080", description = "labs server"),
+				@Server(url = "http://localhost:8080", description = "local server"),
+				@Server(url = "http://13.49.74.161/", description = "cloud server")
 		}
 
 )
