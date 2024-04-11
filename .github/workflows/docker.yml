@@ -25,10 +25,7 @@ jobs:
       - name: Execute Gradle build
         run: |
           chmod +x ./gradlew
-          ./gradlew build          
-          
-      - name: Copy Jar file
-        run: mv build/libs/$(ls build/libs) app.jar
+          ./gradlew build
   
   build-image:
 
@@ -60,4 +57,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ia14maksymmishchuk/lab4-5:${{ env.DATE }}
+          tags: ia14maksymmishchuk/data-in-cloud:${{ env.DATE }}
