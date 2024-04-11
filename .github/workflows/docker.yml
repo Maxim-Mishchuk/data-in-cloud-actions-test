@@ -38,23 +38,7 @@ jobs:
         run: echo "DATE=$(date +%s)" >> $GITHUB_ENV
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/data-in-cloud:${{ env.DATE }} .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/data-in-cloud:${{ env.DATE }} -t ${{ secrets.DOCKER_USERNAME }}/data-in-cloud .
 
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/data-in-cloud:${{ env.DATE }}
-  
-  build-image:
-
-    runs-on: ubuntu-latest
-    environment: test-environment
-    needs: build
-
-    steps:
-      
-      - uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/data-in-cloud --all-tags
