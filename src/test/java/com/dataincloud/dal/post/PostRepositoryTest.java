@@ -1,7 +1,7 @@
 package com.dataincloud.dal.post;
 
 import com.dataincloud.api.configuration.BasicConfiguration;
-import com.dataincloud.api.configuration.RepositoryConfiguration;
+import com.dataincloud.api.configuration.RepositoryJpaConfiguration;
 import com.dataincloud.core.exceptions.ResourceNotFoundException;
 import com.dataincloud.core.post.Post;
 import com.dataincloud.core.user.User;
@@ -17,7 +17,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
-@ContextConfiguration(classes = {BasicConfiguration.class, RepositoryConfiguration.class})
+@ContextConfiguration(classes = {BasicConfiguration.class, RepositoryJpaConfiguration.class})
 class PostRepositoryTest {
     @Autowired
     private PostRepository postRepository;

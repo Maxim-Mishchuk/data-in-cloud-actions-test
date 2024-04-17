@@ -13,6 +13,6 @@ public class UserCreateDto {
     private String username;
 
     @NotNull
-    @Past(message = "Incorrect birthdate")
+    @PastOrPresent(message = "Birthdate cannot be greater than today")
     private Calendar birthDate;
 }
