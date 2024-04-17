@@ -1,15 +1,17 @@
 package com.dataincloud.dal.user;
 
 import com.dataincloud.api.configuration.BasicConfiguration;
-import com.dataincloud.api.configuration.RepositoryConfiguration;
+import com.dataincloud.api.configuration.RepositoryJpaConfiguration;
 import com.dataincloud.core.exceptions.ResourceNotFoundException;
 import com.dataincloud.core.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Calendar;
 import java.util.List;
@@ -17,7 +19,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
-@ContextConfiguration(classes = {RepositoryConfiguration.class, BasicConfiguration.class})
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {RepositoryJpaConfiguration.class, BasicConfiguration.class})
 class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
