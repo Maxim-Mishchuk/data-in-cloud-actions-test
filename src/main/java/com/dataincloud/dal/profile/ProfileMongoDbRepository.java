@@ -2,5 +2,7 @@ package com.dataincloud.dal.profile;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface ProfileMongoDbRepository extends MongoRepository<ProfileDocument, Long> {
+import java.util.UUID;
+
+public interface ProfileMongoDbRepository extends MongoRepository<ProfileDocument, UUID> {
 }

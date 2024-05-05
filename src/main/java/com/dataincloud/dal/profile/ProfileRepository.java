@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 @Transactional
@@ -19,6 +20,7 @@ public class ProfileRepository implements IProfileRepository {
 
     @Override
     public Profile create(Profile profile) {
+        profile.setId(UUID.randomUUID());
         return modelMapper.map(
                 profileRepository.save(modelMapper.map(profile, ProfileDocument.class)),
                 Profile.class
@@ -33,9 +35,9 @@ public class ProfileRepository implements IProfileRepository {
     }
 
     @Override
-    public Profile readById(Long userId) {
+    public Profile readById(UUID id) {
         return modelMapper.map(
-                profileRepository.findById(userId)
+                profileRepository.findById(id)
                         .orElseThrow(
                                 () -> new ResourceNotFoundException("Profile not found")
                         ),
@@ -45,7 +47,7 @@ public class ProfileRepository implements IProfileRepository {
 
     @Override
     public Profile update(Profile editedProfile) {
-        if(!profileRepository.existsById(editedProfile.getUserId()))
+        if(!profileRepository.existsById(editedProfile.getId()))
             throw new ResourceNotFoundException("Profile not found");
 
         return modelMapper.map(
@@ -55,15 +57,15 @@ public class ProfileRepository implements IProfileRepository {
     }
 
     @Override
-    public Profile delete(Long userId) {
+    public Profile delete(UUID id) {
         Profile deletedProfile = modelMapper.map(
-                profileRepository.findById(userId)
+                profileRepository.findById(id)
                         .orElseThrow(
                                 () -> new ResourceNotFoundException("Profile not found"))
                 ,
                 Profile.class
         );
-        profileRepository.deleteById(userId);
+        profileRepository.deleteById(id);
         return deletedProfile;
     }
 }

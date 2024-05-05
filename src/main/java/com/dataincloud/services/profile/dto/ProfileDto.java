@@ -1,29 +1,13 @@
 package com.dataincloud.services.profile.dto;
 
-import com.dataincloud.core.profile.Profile;
-import com.dataincloud.services.profile.dto.validator.ExistingUser;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.util.List;
+import java.util.UUID;
 
 @Getter @Setter
-public class ProfileDto {
-    @NotNull(message = "User id cannot be null")
-    @Positive
-    @ExistingUser
-    private Long userId;
-    @NotEmpty
-    private Byte[] photo;
-    @NotBlank
-    private String firstName;
-    @NotBlank
-    private String lastName;
+public class ProfileDto extends ProfileCreateDto {
     @NotNull
-    @PastOrPresent(message = "Birthdate cannot be greater than today")
-    private LocalDate birthDate;
-    @NotEmpty
-    private List<Profile.ProfileTags> tags;
+    private UUID id;
 }

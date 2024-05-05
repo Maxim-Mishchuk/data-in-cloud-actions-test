@@ -3,6 +3,7 @@ package com.dataincloud.api.controllers.profile;
 import com.dataincloud.api.Application;
 import com.dataincloud.core.profile.Profile;
 import com.dataincloud.dal.profile.ProfileDocument;
+import com.dataincloud.services.profile.dto.ProfileCreateDto;
 import com.dataincloud.services.profile.dto.ProfileDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.dataincloud.core.profile.Profile.ProfileTags.*;
@@ -49,17 +51,21 @@ class ProfileControllerIntegrationTest {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    private static UUID testProfileId;
+
     @BeforeEach
     void fillDbWithTestData() {
         ProfileDocument testProfile = new ProfileDocumentBuilder()
+                .id(UUID.randomUUID())
                 .userId(1L)
-                .photo(new Byte[]{0, 0, 1, 0})
+                .photo("/photo.jpg")
                 .firstName("FirstName1")
                 .lastName("LastName1")
                 .birthDate(LocalDate.of(2002, 3, 18))
                 .tagsList(List.of(EDUCATION))
                 .build();
         mongoTemplate.save(testProfile);
+        testProfileId = testProfile.getId();
     }
 
     @AfterEach
@@ -67,20 +73,81 @@ class ProfileControllerIntegrationTest {
         mongoTemplate.dropCollection("profiles");
     }
 
-    static class ProfileDtoBuilder {
+    static class ProfileCreateDtoBuilder {
         private Long userId;
-        private Byte[] photo;
+        private String photo;
         private String firstName;
         private String lastName;
         private LocalDate birthDate;
         private List<Profile.ProfileTags> tags;
+
+        public ProfileCreateDtoBuilder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public ProfileCreateDtoBuilder photo(String photo) {
+            this.photo = photo;
+            return this;
+        }
+
+        public ProfileCreateDtoBuilder firstName(String firstName) {
+            this.firstName = firstName;
+            return this;
+        }
+
+        public ProfileCreateDtoBuilder lastName(String lastName) {
+            this.lastName = lastName;
+            return this;
+        }
+
+        public ProfileCreateDtoBuilder birthDate(LocalDate birthDate) {
+            this.birthDate = birthDate;
+            return this;
+        }
+
+        public ProfileCreateDtoBuilder birthDate(int year, int month, int dayOfMonth) {
+            this.birthDate = LocalDate.of(year, month, dayOfMonth);
+            return this;
+        }
+
+        public ProfileCreateDtoBuilder tags(List<Profile.ProfileTags> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public ProfileCreateDto build() {
+            ProfileCreateDto profileCreateDto = new ProfileCreateDto();
+            profileCreateDto.setUserId(this.userId);
+            profileCreateDto.setPhotoPath(this.photo);
+            profileCreateDto.setFirstName(this.firstName);
+            profileCreateDto.setLastName(this.lastName);
+            profileCreateDto.setBirthDate(this.birthDate);
+            profileCreateDto.setTags(this.tags);
+            return profileCreateDto;
+        }
+    }
+
+    static class ProfileDtoBuilder {
+        private UUID id;
+        private Long userId;
+        private String photo;
+        private String firstName;
+        private String lastName;
+        private LocalDate birthDate;
+        private List<Profile.ProfileTags> tags;
+
+        private ProfileDtoBuilder id(UUID id) {
+            this.id = id;
+            return this;
+        }
 
         public ProfileDtoBuilder userId(Long userId) {
             this.userId = userId;
             return this;
         }
 
-        public ProfileDtoBuilder photo(Byte[] photo) {
+        public ProfileDtoBuilder photo(String photo) {
             this.photo = photo;
             return this;
         }
@@ -112,8 +179,9 @@ class ProfileControllerIntegrationTest {
 
         public ProfileDto build() {
             ProfileDto profileDto = new ProfileDto();
+            profileDto.setId(this.id);
             profileDto.setUserId(this.userId);
-            profileDto.setPhoto(this.photo);
+            profileDto.setPhotoPath(this.photo);
             profileDto.setFirstName(this.firstName);
             profileDto.setLastName(this.lastName);
             profileDto.setBirthDate(this.birthDate);
@@ -123,12 +191,18 @@ class ProfileControllerIntegrationTest {
     }
 
     static class ProfileDocumentBuilder {
+        private UUID id;
         private Long userId;
         private String firstName;
         private String lastName;
-        private Byte[] photo;
+        private String photo;
         private LocalDate birthDate;
         private List<Profile.ProfileTags> tagsList;
+
+        public ProfileDocumentBuilder id(UUID id) {
+            this.id = id;
+            return this;
+        }
 
         public ProfileDocumentBuilder userId(Long userId) {
             this.userId = userId;
@@ -145,7 +219,7 @@ class ProfileControllerIntegrationTest {
             return this;
         }
 
-        public ProfileDocumentBuilder photo(Byte[] photo) {
+        public ProfileDocumentBuilder photo(String photo) {
             this.photo = photo;
             return this;
         }
@@ -162,10 +236,11 @@ class ProfileControllerIntegrationTest {
 
         public ProfileDocument build() {
             ProfileDocument profileDocument = new ProfileDocument();
+            profileDocument.setId(this.id);
             profileDocument.setUserId(this.userId);
             profileDocument.setFirstName(this.firstName);
             profileDocument.setLastName(this.lastName);
-            profileDocument.setPhoto(this.photo);
+            profileDocument.setPhotoPath(this.photo);
             profileDocument.setBirthDate(this.birthDate);
             profileDocument.setTagsList(this.tagsList);
             return profileDocument;
@@ -179,9 +254,9 @@ class ProfileControllerIntegrationTest {
 
     @Test
     void createValidProfileTest() throws Exception{
-        ProfileDto newProfile = new ProfileDtoBuilder()
+        ProfileCreateDto newProfile = new ProfileCreateDtoBuilder()
                 .userId(2L)
-                .photo(new Byte[]{0, 0, 1, 1})
+                .photo("/newPhoto.jpg")
                 .firstName("NewFirstName")
                 .lastName("NewLastName")
                 .birthDate(1999, 7, 11)
@@ -189,17 +264,17 @@ class ProfileControllerIntegrationTest {
                 .build();
 
         mockMvc.perform(
-                put("/users/profiles")
+                post("/profiles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newProfile))
         ).andExpect(status().isCreated());
     }
 
     @ParameterizedTest
-    @MethodSource("setInvalidProfiles")
-    void createAndUpdateInvalidProfileTest(ProfileDto invalidProfile) throws Exception{
+    @MethodSource("setInvalidCreateProfiles")
+    void createInvalidProfileTest(ProfileCreateDto invalidProfile) throws Exception{
         mockMvc.perform(
-                put("/users/profiles")
+                post("/profiles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidProfile))
         ).andExpect(status().isBadRequest());
@@ -208,8 +283,9 @@ class ProfileControllerIntegrationTest {
     @Test
     void updateValidProfileTest() throws Exception{
         ProfileDto newProfile = new ProfileDtoBuilder()
+                .id(testProfileId)
                 .userId(1L)
-                .photo(new Byte[]{0, 0, 1, 1})
+                .photo("/updatedPhoto.png")
                 .firstName("NewFirstName")
                 .lastName("NewLastName")
                 .birthDate(1999, 7, 11)
@@ -217,15 +293,25 @@ class ProfileControllerIntegrationTest {
                 .build();
 
         mockMvc.perform(
-                put("/users/profiles")
+                put("/profiles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newProfile))
         ).andExpect(status().isOk());
     }
 
+    @ParameterizedTest
+    @MethodSource("setInvalidUpdateProfiles")
+    void updateInvalidProfileTest(ProfileDto invalidProfile) throws Exception{
+        mockMvc.perform(
+                put("/profiles")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidProfile))
+        ).andExpect(status().isBadRequest());
+    }
+
     @Test
     void getAllProfilesTest() throws Exception {
-        mockMvc.perform(get("/users/profiles"))
+        mockMvc.perform(get("/profiles"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", not(empty())));
@@ -233,46 +319,123 @@ class ProfileControllerIntegrationTest {
 
     @Test
     void getProfileByExistingIdTest() throws Exception {
-        Long userId = 1L;
+        UUID id = testProfileId;
 
-        mockMvc.perform(get("/users/{userId}/profiles", userId))
+        mockMvc.perform(get("/profiles/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.userId").value(userId));
+                .andExpect(jsonPath("$.id").value(id.toString()));
     }
 
     @Test
     void getProfileByNonExistentIdTest() throws Exception {
-        Long userId = 2L;
+        UUID id = UUID.randomUUID();
 
-        mockMvc.perform(get("/users/{userId}/profiles", userId))
+        mockMvc.perform(get("/profiles/{id}", id))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void deleteExistingProfileTest() throws Exception {
-        Long userId = 1L;
+        UUID id = testProfileId;
 
-        mockMvc.perform(delete("/users/{userId}/profiles", userId))
+        mockMvc.perform(delete("/profiles/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.userId").value(userId));
+                .andExpect(jsonPath("$.id").value(id.toString()));
     }
 
     @Test
     void deleteNonExistentProfileTest() throws Exception {
-        Long userId = 2L;
+        UUID id = UUID.randomUUID();
 
-        mockMvc.perform(delete("/users/{userId}/profiles", userId))
+        mockMvc.perform(delete("/profiles/{id}", id))
                 .andExpect(status().isNotFound());
     }
 
-    static Stream<Arguments> setInvalidProfiles() {
+    static Stream<Arguments> setInvalidCreateProfiles() {
+        return Stream.of(
+                Arguments.of(
+                        new ProfileCreateDtoBuilder()
+                                .userId(51L)
+                                .photo("/photo.jpg")
+                                .firstName("firstName")
+                                .lastName("lastName")
+                                .birthDate(2000, 1, 27)
+                                .tags(List.of(BLOG))
+                                .build()
+                ),
+                Arguments.of(
+                        new ProfileCreateDtoBuilder()
+                                .userId(2L)
+                                .photo("  ")
+                                .firstName("firstName")
+                                .lastName("lastName")
+                                .birthDate(2000, 1, 27)
+                                .tags(List.of(BLOG))
+                                .build()
+                ),
+                Arguments.of(
+                        new ProfileCreateDtoBuilder()
+                                .userId(2L)
+                                .photo("/photo.jpg")
+                                .firstName("  ")
+                                .lastName("lastName")
+                                .birthDate(2000, 1, 27)
+                                .tags(List.of(BLOG))
+                                .build()
+                ),
+                Arguments.of(
+                        new ProfileCreateDtoBuilder()
+                                .userId(2L)
+                                .photo("/photo.jpg")
+                                .firstName("firstName")
+                                .lastName(" ")
+                                .birthDate(2000, 1, 27)
+                                .tags(List.of(BLOG))
+                                .build()
+                ),
+                Arguments.of(
+                        new ProfileCreateDtoBuilder()
+                                .userId(2L)
+                                .photo("/photo.jpg")
+                                .firstName("firstName")
+                                .lastName(" ")
+                                .birthDate(2030, 1, 27)
+                                .tags(List.of(BLOG))
+                                .build()
+                ),
+                Arguments.of(
+                        new ProfileCreateDtoBuilder()
+                                .userId(2L)
+                                .photo("/photo.jpg")
+                                .firstName("firstName")
+                                .lastName(" ")
+                                .birthDate(2000, 1, 27)
+                                .tags(List.of())
+                                .build()
+                )
+        );
+    }
+
+    static Stream<Arguments> setInvalidUpdateProfiles() {
         return Stream.of(
                 Arguments.of(
                         new ProfileDtoBuilder()
+                                .id(null)
+                                .userId(2L)
+                                .photo("/photo.jpg")
+                                .firstName("firstName")
+                                .lastName("lastName")
+                                .birthDate(2000, 1, 27)
+                                .tags(List.of(BLOG))
+                                .build()
+                ),
+                Arguments.of(
+                        new ProfileDtoBuilder()
+                                .id(testProfileId)
                                 .userId(51L)
-                                .photo(new Byte[]{0, 1})
+                                .photo("/photo.jpg")
                                 .firstName("firstName")
                                 .lastName("lastName")
                                 .birthDate(2000, 1, 27)
@@ -281,8 +444,9 @@ class ProfileControllerIntegrationTest {
                 ),
                 Arguments.of(
                         new ProfileDtoBuilder()
+                                .id(testProfileId)
                                 .userId(2L)
-                                .photo(new Byte[]{})
+                                .photo("")
                                 .firstName("firstName")
                                 .lastName("lastName")
                                 .birthDate(2000, 1, 27)
@@ -291,8 +455,9 @@ class ProfileControllerIntegrationTest {
                 ),
                 Arguments.of(
                         new ProfileDtoBuilder()
+                                .id(testProfileId)
                                 .userId(2L)
-                                .photo(new Byte[]{0, 1})
+                                .photo("/photo.jpg")
                                 .firstName("  ")
                                 .lastName("lastName")
                                 .birthDate(2000, 1, 27)
@@ -301,8 +466,9 @@ class ProfileControllerIntegrationTest {
                 ),
                 Arguments.of(
                         new ProfileDtoBuilder()
+                                .id(testProfileId)
                                 .userId(2L)
-                                .photo(new Byte[]{0, 1})
+                                .photo("/photo.jpg")
                                 .firstName("firstName")
                                 .lastName(" ")
                                 .birthDate(2000, 1, 27)
@@ -311,8 +477,9 @@ class ProfileControllerIntegrationTest {
                 ),
                 Arguments.of(
                         new ProfileDtoBuilder()
+                                .id(testProfileId)
                                 .userId(2L)
-                                .photo(new Byte[]{0, 1})
+                                .photo("/photo.jpg")
                                 .firstName("firstName")
                                 .lastName(" ")
                                 .birthDate(2030, 1, 27)
@@ -321,8 +488,9 @@ class ProfileControllerIntegrationTest {
                 ),
                 Arguments.of(
                         new ProfileDtoBuilder()
+                                .id(testProfileId)
                                 .userId(2L)
-                                .photo(new Byte[]{0, 1})
+                                .photo("/photo.jpg")
                                 .firstName("firstName")
                                 .lastName(" ")
                                 .birthDate(2000, 1, 27)

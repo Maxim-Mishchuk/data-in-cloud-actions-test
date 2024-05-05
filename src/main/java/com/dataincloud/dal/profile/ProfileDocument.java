@@ -7,15 +7,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Document("profiles")
 @Data
 public class ProfileDocument {
     @Id
+    private UUID id;
     private Long userId;
     private String firstName;
     private String lastName;
-    private Byte[] photo;
+    private String photoPath;
     private LocalDate birthDate;
     private List<Profile.ProfileTags> tagsList;
 }

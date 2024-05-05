@@ -1,20 +1,19 @@
 package com.dataincloud.core.profile;
 
 import lombok.Data;
-import lombok.ToString;
-import org.apache.commons.lang3.builder.HashCodeExclude;
 
 import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class Profile {
-    @ToString.Exclude @HashCodeExclude
+    private UUID id;
     private Long userId;
     private String firstName;
     private String lastName;
-    private Byte[] photo;
+    private String photoPath;
     private LocalDate birthDate;
     private List<ProfileTags> tags = new LinkedList<>();
 
@@ -22,6 +21,5 @@ public class Profile {
         EDUCATION,
         BLOG,
         SHOP
-
     }
 }
